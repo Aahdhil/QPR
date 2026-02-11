@@ -32,8 +32,8 @@ python manage.py runserver
 
 | Role | Code | Password |
 |------|------|----------|
-| Admin | 654 | password123 |
-| HOD | 905 | password123 |
+| Admin | 654 | 123456 |
+| HOD | 905 | 123456 |
 
 ---
 
