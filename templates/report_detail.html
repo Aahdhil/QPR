@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Detail</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <style display="none">
+        .value-display {
+            background-color: #f5f5f5;
+            border: 1px solid #6e7b85;
+            padding: 8px;
+            border-radius: 3px;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+        }
+        .part-badge-display {
+            display: inline-block;
+            background-color: #2c5a86;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        @media print {
+            .no-print { 
+                display: none !important; 
+            }
+            body { 
+                background: white !important;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            .card {
+                border: none !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .card-body {
+                padding: 0 !important;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .section-box {
+                page-break-inside: avoid !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container my-4">
+    
+    <div class="no-print mb-4">
+        <button onclick="window.print()" class="btn btn-primary me-2">Print</button>
+        <a href="/reports/" class="btn btn-outline-secondary">Back to List</a>
+    </div>
+    
+    <div id="formArea"></div>
+</div>
+
+<script>
+async function loadDetail(id) {
+    console.log('Loading detail for ID:', id);
+    try {
+        const url = `/api/records/${id}/`;
+        console.log('Fetching from:', url);
+        const res = await fetch(url);
+        console.log('Response status:', res.status);
+        
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('Error response:', errorText);
+            document.getElementById('formArea').innerHTML = '<div class="text-danger">Record not found (Status: ' + res.status + ')</div>';
+            return;
+        }
+        const r = await res.json();
+        console.log('Data received:', r);
+        
+        if (!r.details) {
+            console.warn('No details found, initializing empty details');
+            r.details = {};
+        }
+        
+        let html = '';
+        
+        // TAB 1
+        html += `
+            <div id="tab1">
+                <div class="general-info">
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-md-3 text-end"><span class="lbl-hindi">समाप्त तिमाही</span><span class="lbl-eng">Quarter Ending</span></div>
+                        <div class="col-md-3">
+                            <div class="value-display">${r.quarter || '-'}</div>
+                        </div>
+                        <div class="col-md-2"><div class="value-display" style="flex: 1;">2025-2026</div></div>
+                    </div>
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-md-3 text-end"><span class="lbl-hindi">कार्यालय का नाम</span><span class="lbl-eng">Name of Office</span></div>
+                        <div class="col-md-5"><div class="value-display" style="flex: 1;">${r.officeName || '-'}</div></div>
+                    </div>
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-md-3 text-end"><span class="lbl-hindi">कार्यालय कोड</span><span class="lbl-eng">Office Code</span></div>
+                        <div class="col-md-5"><div class="value-display" style="flex: 1;">${r.officeCode || '-'}</div></div>
+                    </div>
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-md-3 text-end"><span class="lbl-hindi">फोन न.</span><span class="lbl-eng">Phone No.</span></div>
+                        <div class="col-md-5"><div class="value-display" style="flex: 1;">${r.phone || '-'}</div></div>
+                    </div>
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-md-3 text-end"><span class="lbl-hindi">भाषा क्षेत्र</span><span class="lbl-eng">Language Region</span></div>
+                        <div class="col-md-5">
+                            <div class="value-display" style="flex: 1;">${r.region || '-'}</div>
+                        </div>
+                    </div>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-3 text-end"><span class="lbl-hindi">ई-मेल</span><span class="lbl-eng">(Email ID)</span></div>
+                        <div class="col-md-5"><div class="value-display" style="flex: 1;">${r.email || '-'}</div></div>
+                    </div>
+                </div>
+                <hr>
+
+                <div class="row">
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">1. माननीय मंत्री जी को भेजी गयी फाइलों का ब्यौरा <span class="d-block small text-muted">(Details Of Files Sent To The Minister)</span></div>
+                        
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">तिमाही में मंत्री जी को कितनी फाइल भेजी गयीं</span><span class="lbl-eng">(Total No. Files Sent To The Minister During Quarter)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s1_total || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से कितनी फाइलें हिंदी में भेजी गयीं</span><span class="lbl-eng">(Out of these, no.of files sent to in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s1_hindi || '-'}</div></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">2. सचिव/समकक्ष स्तर पर बैठकों/फाइलों का ब्यौरा <span class="d-block small text-muted">(Details of meetings/files at Secretary/Equivalent level)</span></div>
+                        
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">सचिव/समकक्ष स्तर पर कितनी बैठकें आयोजित की गयीं</span><span class="lbl-eng">(How many meetings were held at Secretary/equivalent)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s2_meetings || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">कार्यवाही हिंदी में की गयी/कार्यवृत्त हिंदी में जारी किये गए</span><span class="lbl-eng">(Meetings were conducted in Hindi/Minutes were published in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s2_minutes || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">सचिव/समकक्ष स्तर से सीधे जारी किये गए कुल कागजात</span><span class="lbl-eng">(Total papers issued directly from Secretary/equivalent)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s2_papers_total || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">हिंदी में जारी किये गए कुल कागजात</span><span class="lbl-eng">(Total documents issued in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s2_papers_hindi || '-'}</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">3. राजभाषा अधिनियम 1963 की धारा 3(3) के अंतर्गत जारी कागजात <span class="d-block small text-muted">(Documents issued under Section 3(3) of the Official Languages Act, 1963)</span></div>
+                        
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">जारी कागजात की कुल संख्या</span><span class="lbl-eng">(Total no. of documents issued)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s3_total || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">द्विभाषी रूप में जारी कागजात की संख्या</span><span class="lbl-eng">(Total No. of documents issued bilingually)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s3_bilingual || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से केवल अंग्रेजी में जारी किये गए कागजात</span><span class="lbl-eng">(No. of documents issued only in English)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s3_english || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">केवल हिन्दी में जारी किए गए कागजात</span><span class="lbl-eng">(No. of documents issued only in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s3_hindi_only || '-'}</div></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">4. हिंदी में प्राप्त पत्र (राजभाषा नियम - 5) <span class="d-block small text-muted">(Letters received in Hindi (Official Language Rule- 5))</span></div>
+                        
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">हिंदी में प्राप्त कुल पत्रों की संख्या</span><span class="lbl-eng">(Total no.of letters received in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s4_total || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से कितनों के उत्तर दिए जाने अपेक्षित नहीं थे</span><span class="lbl-eng">(No. of letters not to be replied to)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s4_no_reply || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से कितनों के उत्तर हिंदी/द्विभाषी में दिए गए</span><span class="lbl-eng">(Out of these, no.of letters replied to in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s4_replied_hindi || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से कितनों के उत्तर अंग्रेजी में दिए गए</span><span class="lbl-eng">(Total no.of letters replied in English)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s4_replied_eng || '-'}</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab2" class="mt-5">
+                <div class="row">
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">5. अंग्रेजी में प्राप्त पत्रों के उत्तर हिंदी में दिए जाने/ क,ख क्षेत्र के लिये <span class="d-block small text-muted">(No.of letters received in English but replied in Hindi/For A and B Region)</span></div>
+                        
+                        <p class="text-center fw-bold mb-2 small">'क' क्षेत्र से / From Region 'A'</p>
+                        
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">अंग्रेजी में प्राप्त पत्रों की संख्या</span><span class="lbl-eng">(No.of letters received in English)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s5_total || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से कितनों के उत्तर हिंदी में दिए गए</span><span class="lbl-eng">(No.of letters replied in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s5_hindi || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से कितनों के उत्तर अंग्रेजी में दिए गए</span><span class="lbl-eng">(How Many letters replied against these in English)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s5_english || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इनमें से कितनों के उत्तर अपेक्षित नहीं थे</span><span class="lbl-eng">(No. of letters not expected to be replied)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s5_noreply || '-'}</div></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">6. भेजे गये मूल पत्रों का ब्यौरा <span class="d-block small text-muted">(Details of total letters issued)</span></div>
+                        
+                        <div class="mb-3 border-bottom pb-2">
+                            <strong class="d-block text-center text-primary mb-2 small">'क' क्षेत्र को / To Region 'A'</strong>
+                            <div class="lbl-row"><div class="lbl-text small">हिंदी/द्विभाषी में <br>(Issued in Hindi/Bilingual)</div><div class="lbl-input"><div class="value-display">${r.details.s6_a_hindi || '-'}</div></div></div>
+                            <div class="lbl-row"><div class="lbl-text small">केवल अंग्रेजी में <br>(Issued in English only)</div><div class="lbl-input"><div class="value-display">${r.details.s6_a_eng || '-'}</div></div></div>
+                            <div class="lbl-row"><div class="lbl-text small">भेजे गए पत्रों की कुल संख्या <br>(Total no.of letters issued)</div><div class="lbl-input"><div class="value-display">${r.details.s6_a_total || '-'}</div></div></div>
+                        </div>
+
+                        <div class="mb-3 border-bottom pb-2">
+                            <strong class="d-block text-center text-primary mb-2 small">'ख' क्षेत्र को / To Region 'B'</strong>
+                            <div class="lbl-row"><div class="lbl-text small">हिंदी/द्विभाषी में <br>(Issued in Hindi/Bilingual)</div><div class="lbl-input"><div class="value-display">${r.details.s6_b_hindi || '-'}</div></div></div>
+                            <div class="lbl-row"><div class="lbl-text small">केवल अंग्रेजी में <br>(Issued in English only)</div><div class="lbl-input"><div class="value-display">${r.details.s6_b_eng || '-'}</div></div></div>
+                            <div class="lbl-row"><div class="lbl-text small">भेजे गए पत्रों की कुल संख्या <br>(Total no.of letters issued)</div><div class="lbl-input"><div class="value-display">${r.details.s6_b_total || '-'}</div></div></div>
+                        </div>
+
+                        <div>
+                            <strong class="d-block text-center text-primary mb-2 small">'ग' क्षेत्र को / To Region 'C'</strong>
+                            <div class="lbl-row"><div class="lbl-text small">हिंदी/द्विभाषी में <br>(Issued in Hindi/Bilingual)</div><div class="lbl-input"><div class="value-display">${r.details.s6_c_hindi || '-'}</div></div></div>
+                            <div class="lbl-row"><div class="lbl-text small">केवल अंग्रेजी में <br>(Issued in English only)</div><div class="lbl-input"><div class="value-display">${r.details.s6_c_eng || '-'}</div></div></div>
+                            <div class="lbl-row"><div class="lbl-text small">भेजे गए पत्रों की कुल संख्या <br>(Total no.of letters issued)</div><div class="lbl-input"><div class="value-display">${r.details.s6_c_total || '-'}</div></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">7. (तिमाही के दौरान) फाइलों/दस्तावेजों पर लिखी गई टिप्पणियों का ब्यौरा <span class="d-block small text-muted">((During quarter) Details of Notings on files/documents)</span></div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">हिन्दी में लिखी गई टिप्पणियों के पृष्ठों की संख्या</span><span class="lbl-eng">(No. of pages with Notings in Hindi)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s7_hindi || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">अंग्रेजी में लिखी गई टिप्पणियों के पृष्ठों की संख्या</span><span class="lbl-eng">(No. of pages with Notings in English)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s7_eng || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">कुल टिप्पणियों के पृष्ठों की संख्या</span><span class="lbl-eng">(No. of pages of total Notings)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s7_total || '-'}</div></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">8. तिमाही में आयोजित हिंदी कार्यशालाएं <span class="d-block small text-muted">(Hindi Workshops in this Quarter)</span></div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">तिमाही के दौरान पूर्ण दिवसीय आयोजित कार्यशालाओं की संख्या</span><span class="lbl-eng">(No. of full day workshops conducted during the quarter)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s8_workshops || '-'}</div></div>
+                        </div>
+                        <hr class="my-3">
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">प्रशिक्षित अधिकारियों की संख्या</span><span class="lbl-eng">(No. of Officers trained)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s8_officers || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">प्रशिक्षित कर्मचारियों की संख्या</span><span class="lbl-eng">(No. of employees trained)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s8_employees || '-'}</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab3" class="mt-5">
+                <div class="row">
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">9. विभागीय/संगठनीय राजभाषा कार्यान्वयन समिति की बैठक... <span class="d-block small text-muted">(Date of the meeting of the Departmental/Organizational Official Language Implementation Committee)</span></div>
+                        
+                         <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">राजभाषा कार्यान्वयन समिति की बैठक की तिथि</span><span class="lbl-eng">(Date of the meeting of Official Language Implementation Committee)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s9_date || '-'}</div></div>
+                        </div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">अधीनस्थ कार्यालयों में गठित राजभाषा कार्यान्वयन समितियों की संख्या</span><span class="lbl-eng">(No. Of Official Language Implementation Committee constituted in subordinate offices)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s9_sub_committees || '-'}</div></div>
+                        </div>
+                         <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">इस तिमाही में आयोजित बैठकों की संख्या</span><span class="lbl-eng">(No. of Meetings organized in this quarter)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s9_meetings_count || '-'}</div></div>
+                        </div>
+                         <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">बैठकों से सम्बंधित कार्यसूची और कार्यवृत्त क्या हिंदी में जारी किए गए?</span><span class="lbl-eng">(Whether the agenda or the minutes of the meeting were issued in Hindi ?)</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s9_agenda_hindi || '-'}</div></div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 section-box">
+                        <div class="section-title">10. हिंदी सलाहकार समिति की बैठक के आयोजन की तिथि <span class="d-block small text-muted">(Date of the Meeting of the Hindi Advisory Committee)</span></div>
+                        <div class="lbl-row">
+                            <div class="lbl-text"><span class="lbl-hindi">तिथि</span><span class="lbl-eng">Date</span></div>
+                            <div class="lbl-input"><div class="value-display">${r.details.s10_date || '-'}</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section-box mt-4">
+                    <div class="section-title">11. तिमाही के दौरान विशिष्ट उपलब्धियां (अधिकतम सीमा- 500 अक्षर) <span class="d-block small text-muted">(specific achievements during quarter)</span></div>
+                    
+                    <div class="mb-2">
+                        <strong class="d-block mb-2">1. नवनमेषी कार्य/Innovative Work</strong>
+                        <div style="background-color: #f5f5f5; border: 1px solid #6e7b85; padding: 10px; border-radius: 3px; min-height: 80px;">${r.details.s12_1 || '-'}</div>
+                    </div>
+                    <div class="mb-2">
+                        <strong class="d-block mb-2 mt-3">2. विशिष्ट आयोजन/Special Event/उल्लेखनीय कार्य /Notable Work</strong>
+                        <div style="background-color: #f5f5f5; border: 1px solid #6e7b85; padding: 10px; border-radius: 3px; min-height: 80px;">${r.details.s12_2 || '-'}</div>
+                    </div>
+                    <div class="mb-2">
+                        <strong class="d-block mb-2 mt-3">3. हिंदी माध्यम में किए गए अन्य कार्य/Other works done in Hindi medium</strong>
+                        <div style="background-color: #f5f5f5; border: 1px solid #6e7b85; padding: 10px; border-radius: 3px; min-height: 80px;">${r.details.s12_3 || '-'}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        console.log('HTML generated, length:', html.length);
+        document.getElementById('formArea').innerHTML = html;
+        console.log('HTML inserted successfully');
+    } catch (err) {
+        console.error('Full error:', err);
+        document.getElementById('formArea').innerHTML = '<div class="text-danger" style="padding: 20px;">Error loading record: ' + err.message + '</div>';
+    }
+}
+
+// Determine id from URL
+const parts = window.location.pathname.split('/').filter(Boolean);
+const id = parts.length ? parts[parts.length - 1] : null;
+console.log('URL parts:', parts, 'ID extracted:', id);
+if (id) loadDetail(id);
+else console.log('No ID found in URL');
+</script>
+</body>
+</html>
